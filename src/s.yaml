@@ -19,7 +19,7 @@ vars:
   service:
     name: "{{ serviceName }}"
     description: 'Serverless Devs Web Framework Service'
-    vpcConfig: auto
+    nasConfig: auto
 services:
   fc-nas-filemgr: # 业务名称/模块名称
     component: fc # 组件名称

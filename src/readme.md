@@ -25,7 +25,7 @@
 ### 在线快速体验
 
 - 通过阿里云 **Serverless 应用中心**： 可以点击 [【🚀 部署】](https://fcnext.console.aliyun.com/applications/create?clone_url=https://github.com/huangfushan/hfs-test-5.git) ，按照引导填入参数，快速进行部署和体验。
-- 通过阿里云 **CloudShell**：可以点击 [【🏄 部署】](https://api.aliyun.com/new#/tutorial?action=git_open&git_repo=https://github.com/devsapp/devsapp-cloudshell-example.git&tutorial=tutorial/start-nas-ui.md) ，按照引导填入参数，快速进行部署和体验。
+- 通过阿里云 **CloudShell**：可以点击 [【🏄 部署】](https://api.aliyun.com/new#/tutorial?action=git_open&git_repo=https://github.com/devsapp/devsapp-cloudshell-example.git&tutorial=tutorial/start-fc-kodbox.md) ，按照引导填入参数，快速进行部署和体验。
 
 ### 在本地部署体验
 
@@ -33,9 +33,10 @@
     > 详细文档可以参考 [Serverless Devs 安装文档](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/install.md)
 2. 配置密钥信息：`s config add`
     > 详细文档可以参考 [阿里云密钥配置文档](https://github.com/devsapp/fc/blob/main/docs/zh/config.md)
-3. 初始化项目：`s init start-nas-ui -d start-nas-ui`
+3. 初始化项目：`s init start-fc-kodbox -d start-fc-kodbox`
 4. 进入项目后：
-   - 执行 `s fc-nas-filemgr nas upload -r code/kodbox /mnt/nas/.fc-nas-filemgr` 将 web 管理工程上传到 NAS
+   - 执行 `s fc-nas-filemgr nas init` 初始化一个 NAS
+   - 执行 `s fc-nas-filemgr nas upload -r code/kodbox /mnt/auto/.fc-nas-filemgr` 将 web 管理工程上传到 NAS
    - 部署：`s deploy`
 5. 部署过程中可能需要阿里云密钥的支持，部署完成之后会获得到临时域名可供测试
 
