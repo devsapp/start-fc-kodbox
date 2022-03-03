@@ -2,7 +2,7 @@ Type: Application
 Name: start-fc-kodbox
 Provider:
   - 阿里云
-Version: 0.0.4
+Version: 0.0.5
 Description: 快速部署一个 NAS+OSS UI文件管理系统到阿里云函数计算
 HomePage: https://github.com/devsapp/start-fc-kodbox
 Tags:
@@ -23,10 +23,10 @@ Parameters:
     - functionName
   properties:
     region:
+      title: 地域
       type: string
       default: cn-hangzhou
       description: 创建应用所在的地区
-      required: true
       enum:
         - cn-beijing
         - cn-hangzhou
@@ -48,12 +48,12 @@ Parameters:
         - us-east-1
         - ap-south-1
     serviceName:
+      title: 服务名
       type: string
       default: fc-nas-filemgr
       description: 应用所属的函数计算服务
-      required: true
     functionName:
+      title: 函数名
       type: string
       default: kodbox
       description: 应用的函数名称
-      required: true

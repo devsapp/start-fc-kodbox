@@ -34,10 +34,7 @@
 2. 配置密钥信息：`s config add`
     > 详细文档可以参考 [阿里云密钥配置文档](https://github.com/devsapp/fc/blob/main/docs/zh/config.md)
 3. 初始化项目：`s init start-fc-kodbox -d start-fc-kodbox`
-4. 进入项目后：
-   - 执行 `s fc-nas-filemgr nas init` 初始化一个 NAS
-   - 执行 `s fc-nas-filemgr nas upload -r code/kodbox /mnt/auto/.fc-nas-filemgr` 将 web 管理工程上传到 NAS
-   - 部署：`s deploy`
+4. 进入项目后部署：`s deploy`
 5. 部署过程中可能需要阿里云密钥的支持，部署完成之后会获得到临时域名可供测试
 
 > 浏览器打开域名登录，默认初始化账号和密码是 admin/admin， 您可以登录后， 就得到一个 web 版 windows 用户体验的文件管理系统
