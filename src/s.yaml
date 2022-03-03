@@ -23,6 +23,13 @@ vars:
 services:
   fc-nas-filemgr: # 业务名称/模块名称
     component: fc # 组件名称
+    actions:
+      pre-deploy:
+        - run: s fc-nas-filemgr nas init
+          path: ./
+        # 请注意这里上传的路径，如果之前已经挂载了这个nas，并且上传过这个文件夹，会导致文件的覆盖
+        - run: s fc-nas-filemgr nas upload -r code/kodbox /mnt/auto/.fc-nas-filemgr
+          path: ./
     props: # 组件的属性值
       region: ${vars.region}
       service: ${vars.service}
