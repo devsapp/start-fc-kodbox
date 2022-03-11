@@ -39,9 +39,8 @@ services:
         codeUri: './code'
         runtime: custom
         timeout: 7200
-        memorySize: 4096
+        memorySize: 3072
         instanceConcurrency: 16
-        instanceType: c1
         customRuntimeConfig:
           command:
             - bash
