@@ -21,7 +21,7 @@
 
 ## 代码与预览
 
-- [:octocat: 源代码](https://github.com/devsapp/start-nas-ui/tree/main/src)
+- [:octocat: 源代码](https://github.com/devsapp/start-fc-kodbox/tree/main/src)
 - [:earth_africa: 效果预览](https://img.alicdn.com/imgextra/i3/O1CN01WRjMv428OKNAu7gjq_!!6000000007922-2-tps-1733-1007.png)
 
 ## 快速部署和体验
