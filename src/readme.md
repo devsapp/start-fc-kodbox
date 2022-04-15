@@ -1,3 +1,8 @@
+## 🚀 一键部署
+您可以点击 点击`一键部署`按钮,进行快速体验
+
+[![Deploy with Severless Devs](https://img.alicdn.com/imgextra/i1/O1CN01w5RFbX1v45s8TIXPz_!!6000000006118-55-tps-95-28.svg)](https://fcnext.console.aliyun.com/applications/create?template=start-fc-kodbox)
+
 # Serverless NAS+OSS UI文件管理系统案例
 
 > 快速部署和体验Serverless架构下的 UI FileManager 项目
@@ -21,7 +26,7 @@
 
 ## 代码与预览
 
-- [:octocat: 源代码](https://github.com/devsapp/start-nas-ui/tree/main/src)
+- [:octocat: 源代码](https://github.com/devsapp/start-fc-kodbox/tree/main/src)
 - [:earth_africa: 效果预览](https://img.alicdn.com/imgextra/i3/O1CN01WRjMv428OKNAu7gjq_!!6000000007922-2-tps-1733-1007.png)
 
 ## 快速部署和体验
@@ -40,8 +45,6 @@
 5. 部署过程中可能需要阿里云密钥的支持，部署完成之后会获得到临时域名可供测试
 
 > 浏览器打开域名登录，默认初始化账号和密码是 admin/admin， 您可以登录后， 就得到一个 web 版 windows 用户体验的文件管理系统
-
-![](https://img.alicdn.com/imgextra/i3/O1CN01WRjMv428OKNAu7gjq_!!6000000007922-2-tps-1733-1007.png)
 
 > 在本地使用该项目时，不仅可以部署，还可以进行更多的操作，例如查看日志，查看指标，进行多种模式的调试等，这些操作详情可以参考[函数计算组件命令文档](https://github.com/devsapp/fc#%E6%96%87%E6%A1%A3%E7%9B%B8%E5%85%B3) ;
 
