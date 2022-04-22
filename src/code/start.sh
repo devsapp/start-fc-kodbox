@@ -5,6 +5,9 @@ mkdir -p /tmp/log/nginx/
 mkdir -p /tmp/var/nginx/
 mkdir -p /tmp/var/sessions/
 
+mkdir -p /mnt/auto/.fc-nas-filemgr/sessions
+chown -R www-data:www-data /mnt/auto/.fc-nas-filemgr/sessions
+
 chown -R www-data:www-data /mnt/nas/.fc-nas-filemgr
 
 echo "start php-fpm"
