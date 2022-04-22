@@ -50,7 +50,7 @@
 
 ## 项目使用注意事项
 
-1. 项目Yaml中，声明了`actions`，并且将 Web UI FileManager 工程上传到 NAS，执行函数的时候， nginx 配置 `root /mnt/nas/.fc-nas-filemgr;` 指定了 web 的目录在 NAS 上。
+1. 项目Yaml中，声明了`actions`，并且将 Web UI FileManager 工程上传到 NAS，执行函数的时候， nginx 配置 `root /mnt/auto/.fc-nas-filemgr;` 指定了 web 的目录在 NAS 上。
 2. 该示例中默认使用 sqlite 数据库 (位于 NAS)
 
 ## 应用详情
