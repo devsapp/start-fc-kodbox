@@ -8,7 +8,7 @@ mkdir -p /tmp/var/sessions/
 mkdir -p /mnt/auto/.fc-nas-filemgr/sessions
 chown -R www-data:www-data /mnt/auto/.fc-nas-filemgr/sessions
 
-chown -R www-data:www-data /mnt/nas/.fc-nas-filemgr
+chown -R www-data:www-data /mnt/auto/.fc-nas-filemgr
 
 echo "start php-fpm"
 php-fpm7.4 -c /code/php.ini -y /code/php-fpm.conf
