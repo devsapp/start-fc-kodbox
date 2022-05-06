@@ -1,52 +1,59 @@
-## 🚀 一键部署
-您可以点击 点击`一键部署`按钮,进行快速体验
+# start-fc-kodbox 帮助文档
 
-[![Deploy with Severless Devs](https://img.alicdn.com/imgextra/i1/O1CN01w5RFbX1v45s8TIXPz_!!6000000006118-55-tps-95-28.svg)](https://fcnext.console.aliyun.com/applications/create?template=start-fc-kodbox)
+<p align="center" class="flex justify-center">
+    <a href="https://www.serverless-devs.com" class="ml-1">
+    <img src="http://editor.devsapp.cn/icon?package=start-fc-kodbox&type=packageType">
+  </a>
+  <a href="http://www.devsapp.cn/details.html?name=start-fc-kodbox" class="ml-1">
+    <img src="http://editor.devsapp.cn/icon?package=start-fc-kodbox&type=packageVersion">
+  </a>
+  <a href="http://www.devsapp.cn/details.html?name=start-fc-kodbox" class="ml-1">
+    <img src="http://editor.devsapp.cn/icon?package=start-fc-kodbox&type=packageDownload">
+  </a>
+</p>
 
-# Serverless NAS+OSS UI文件管理系统案例
+<description>
 
-> 快速部署和体验Serverless架构下的 UI FileManager 项目
+> ***快速部署一个 NAS+OSS UI文件管理系统到阿里云函数计算***
 
-- [Serverless NAS+OSS UI文件管理系统案例](#serverless-nasoss-ui文件管理系统案例)
-  - [体验前准备](#体验前准备)
-  - [代码与预览](#代码与预览)
-  - [快速部署和体验](#快速部署和体验)
-    - [在线快速体验](#在线快速体验)
-    - [在本地部署体验](#在本地部署体验)
-  - [项目使用注意事项](#项目使用注意事项)
-  - [应用详情](#应用详情)
-  - [参考](#参考)
+</description>
 
-## 体验前准备
+<table>
 
-该应用案例，需要您开通:
+## 前期准备
+使用该项目，推荐您拥有以下的产品权限 / 策略：
 
-- [阿里云函数计算](https://fcnext.console.aliyun.com/) 产品；并建议您当前的账号有一下权限存在`FCDefaultRole`。
-- [阿里云文件存储](https://nasnext.console.aliyun.com/) 产品
+| 服务/业务 | 函数计算 |  硬盘挂载 |  VPC |  其它 |     
+| --- |  --- |   --- |   --- |   --- |   
+| 权限/策略 | AliyunFCFullAccess |  AliyunNASFullAccess |  AliyunVPCFullAccess |  AliyunECSFullAccess |     
 
-## 代码与预览
 
-- [:octocat: 源代码](https://github.com/devsapp/start-fc-kodbox/tree/main/src)
-- [:earth_africa: 效果预览](https://img.alicdn.com/imgextra/i3/O1CN01WRjMv428OKNAu7gjq_!!6000000007922-2-tps-1733-1007.png)
+</table>
 
-## 快速部署和体验
-### 在线快速体验
+<codepre id="codepre">
 
-- 通过阿里云 **Serverless 应用中心**： 可以点击 [【🚀 部署】](https://fcnext.console.aliyun.com/applications/create?template=start-fc-kodbox) ，按照引导填入参数，快速进行部署和体验。
+</codepre>
 
-### 在本地部署体验
+<deploy>
 
-1. 下载安装 Serverless Devs：`npm install @serverless-devs/s` 
-    > 详细文档可以参考 [Serverless Devs 安装文档](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/install.md)
-2. 配置密钥信息：`s config add`
-    > 详细文档可以参考 [阿里云密钥配置文档](https://github.com/devsapp/fc/blob/main/docs/zh/config.md)
-3. 初始化项目：`s init start-fc-kodbox -d start-fc-kodbox`
-4. 进入项目后部署：`s deploy`
-5. 部署过程中可能需要阿里云密钥的支持，部署完成之后会获得到临时域名可供测试
+## 部署 & 体验
 
-> 浏览器打开域名登录，默认初始化账号和密码是 admin/admin， 您可以登录后， 就得到一个 web 版 windows 用户体验的文件管理系统
+<appcenter>
 
-> 在本地使用该项目时，不仅可以部署，还可以进行更多的操作，例如查看日志，查看指标，进行多种模式的调试等，这些操作详情可以参考[函数计算组件命令文档](https://github.com/devsapp/fc#%E6%96%87%E6%A1%A3%E7%9B%B8%E5%85%B3) ;
+- :fire: 通过 [Serverless 应用中心](https://fcnext.console.aliyun.com/applications/create?template=start-fc-kodbox) ，
+[![Deploy with Severless Devs](https://img.alicdn.com/imgextra/i1/O1CN01w5RFbX1v45s8TIXPz_!!6000000006118-55-tps-95-28.svg)](https://fcnext.console.aliyun.com/applications/create?template=start-fc-kodbox)  该应用。 
+
+</appcenter>
+
+- 通过 [Serverless Devs Cli](https://www.serverless-devs.com/serverless-devs/install) 进行部署：
+    - [安装 Serverless Devs Cli 开发者工具](https://www.serverless-devs.com/serverless-devs/install) ，并进行[授权信息配置](https://www.serverless-devs.com/fc/config) ；
+    - 初始化项目：`s init start-fc-kodbox -d start-fc-kodbox`   
+    - 进入项目，并进行项目部署：`cd start-fc-kodbox && s deploy -y`
+
+</deploy>
+
+<appdetail id="flushContent">
+
 
 ## 项目使用注意事项
 
@@ -70,11 +77,23 @@
 添加 OSS Bucket 管理：
 ![](https://img.alicdn.com/imgextra/i2/O1CN01e6dygX1znDLioRfQe_!!6000000006758-2-tps-1210-756.png)
 
-## 参考
+# 参考
 使用开源的 UI 文件管理系统: [https://github.com/kalcaddle/kodbox](https://github.com/kalcaddle/kodbox)
 
------
+</appdetail>
 
-> - Serverless Devs 项目：https://www.github.com/serverless-devs/serverless-devs   
-> - Serverless Devs 文档：https://www.github.com/serverless-devs/docs   
-> - Serverless Devs 钉钉交流群：33947367    
+<devgroup>
+
+## 开发者社区
+
+您如果有关于错误的反馈或者未来的期待，您可以在 [Serverless Devs repo Issues](https://github.com/serverless-devs/serverless-devs/issues) 中进行反馈和交流。如果您想要加入我们的讨论组或者了解 FC 组件的最新动态，您可以通过以下渠道进行：
+
+<p align="center">
+
+| <img src="https://serverless-article-picture.oss-cn-hangzhou.aliyuncs.com/1635407298906_20211028074819117230.png" width="130px" > | <img src="https://serverless-article-picture.oss-cn-hangzhou.aliyuncs.com/1635407044136_20211028074404326599.png" width="130px" > | <img src="https://serverless-article-picture.oss-cn-hangzhou.aliyuncs.com/1635407252200_20211028074732517533.png" width="130px" > |
+|--- | --- | --- |
+| <center>微信公众号：`serverless`</center> | <center>微信小助手：`xiaojiangwh`</center> | <center>钉钉交流群：`33947367`</center> | 
+
+</p>
+
+</devgroup>
