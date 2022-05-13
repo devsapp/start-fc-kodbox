@@ -100,7 +100,7 @@ services:
           # qualifier: LATEST    
           config:    
             payload: '{}'    
-            cronExpression: '@every 2m'    
+            cronExpression: '@every 60m'    
             enable: true
 
 #  next-function: # 第二个函数的案例，仅供参考
