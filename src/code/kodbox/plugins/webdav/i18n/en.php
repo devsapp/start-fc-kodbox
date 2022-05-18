@@ -2,9 +2,9 @@
 return array(
 	'webdav.meta.name'			=> "WebDAV Mount",
 	'webdav.meta.title'			=> "WebDAV Mount to network drive",
-	'webdav.meta.desc'			=> "The kodcloud documents can be linked to the current computer or app, and the file management can be as convenient and fast as the local hard disk; at the same time, the files can be edited and saved in real time",
+	'webdav.meta.desc'			=> "The driver documents can be linked to the current computer or app, and the file management can be as convenient and fast as the local hard disk; at the same time, the files can be edited and saved in real time",
 	'webdav.config.isOpen'		=> "Open WebDAV",
-	'webdav.config.isOpenDesc'	=> "When enabled, users can mount the kodcloud service through WebDAV",
+	'webdav.config.isOpenDesc'	=> "When enabled, users can mount the driver service through WebDAV",
 	'webdav.config.pathAllow'	=> "Home Path",
 	'webdav.config.pathAllowDesc'	=> "Root path location after login and mount; all - including personal network disk and enterprise network disk favorites (favorites support any path of collection)",
 	'webdav.config.pathAllowAll'	=> "All",
@@ -28,4 +28,12 @@ return array(
 	'webdav.help.others'		=> "<b>Other clients and systems</b>:Specify the address as the above WebDAV address and the account password as your login account. The basic process is similar
 	<br/>Android,iOS:<a href='http://www.estrongs.com/' target='_blank'>ES File Explorer</a>",",",
 	'webdav.help.windowsTips'	=> "For the first use, you need to cancel the upload and HTTP restrictions. After downloading this file, double-click to run it",
+	
+	'webdav.config.tab1'				=> 'WebDAV Server',
+	'webdav.config.tab2'				=> 'Mount webdav',	
+	'webdav.config.mountWebdav'			=> 'Mount webdav',
+	'webdav.config.mountWebdavDesc'		=> 'Support mounting after opening, add storage can select WebDAV',
+	'webdav.config.mountDetail1'		=> 'Supports attaching other WebDAV servers as local storage',
+	'webdav.config.mountDetail2'		=> 'WebDAV provided by other kodbox can be attached, and multiple kodbox can be interconnected',
+	'webdav.config.mountDetail3'		=> 'When the mount service is provided by kodbox, the front-end uploads and downloads are transmitted directly without going through the server',
 );

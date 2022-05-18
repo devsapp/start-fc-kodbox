@@ -34,8 +34,8 @@ class userRegist extends Controller {
 			show_json(LNG('common.invalidRequest'), false);
 		}
 		if (!Input::check($data['input'], $data['type'])) {
-			$type = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
-			show_json(LNG('common.invalid') . LNG('common.' . $type), false);
+			$text = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
+			show_json(LNG('common.invalid') . LNG('common.' . $text), false);
 		}
 		// 图形验证码
 		Action('user.setting')->checkImgCode($data['checkCode']);
@@ -49,8 +49,8 @@ class userRegist extends Controller {
 		if ($data['source'] == 'findpwd') {
 			$this->userFindPwdCheck($data);
 		}
-
 		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
+
 		// 2.发送邮件/短信
 		$func = $data['type'] == 'email' ? 'sendEmail' : 'sendSms';
 		$res = Action('user.bind')->$func($data['input'], "{$data['type']}_{$data['source']}");
@@ -85,12 +85,12 @@ class userRegist extends Controller {
 	 */
 	private function userFindPwdCheck($data) {
 		$userID = Input::get('userID', 'require', '0');
-		$type = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
+		$text = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
 		// 前端找回密码
 		if ($userID == '0') {
 			$where = array($data['type'] => $data['input']);
 			if (!Model('User')->userSearch($where)) {
-				show_json(LNG('common.' . $type) . LNG('common.error'), false);
+				show_json(LNG('common.' . $text) . LNG('common.error'), false);
 				// show_json(LNG('common.' . $data['type']) . LNG('user.notRegist'), false);
 			}
 			return;
@@ -101,12 +101,12 @@ class userRegist extends Controller {
 			show_json(LNG('common.illegalRequest'), false);
 		}
 		if(!$userInfo[$data['type']]) {
-			show_json(LNG('common.' . $type) . LNG('common.error'), false);
-			// show_json(LNG('common.' . $type) . LNG('user.notBind'), false);
+			show_json(LNG('common.' . $text) . LNG('common.error'), false);
+			// show_json(LNG('common.' . $text) . LNG('user.notBind'), false);
 		}
 		// 提交的邮箱、手机和用户信息中的不匹配
 		if ($userInfo[$data['type']] != $data['input']) {
-			show_json(sprintf(LNG('user.inputNotMatch'), LNG('common.' . $type)), false);
+			show_json(sprintf(LNG('user.inputNotMatch'), LNG('common.' . $text)), false);
 		}
 	}
 
@@ -130,8 +130,8 @@ class userRegist extends Controller {
 
 		// 邮箱/手机号校验
 		if (!Input::check($data['input'], $data['type'])) {
-			$type = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
-			show_json(LNG('common.invalid') . LNG('common.' . $type), false);
+			$text = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
+			show_json(LNG('common.invalid') . LNG('common.' . $text), false);
 		}
 		// 消息验证码校验
 		if(!$msgCode = Input::get('msgCode')){
@@ -169,8 +169,8 @@ class userRegist extends Controller {
 		if (isset($data['type']) && isset($data['input'])) {
 			$bindRegist = false;
 			if (Model('User')->userSearch(array($data['type'] => $data['input'])) ) {
-				$type = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
-				return show_json(LNG('common.' . $type) . LNG('common.error'), false);
+				$text = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
+				return show_json(LNG('common.' . $text) . LNG('common.error'), false);
 				// return show_json(LNG('common.' . $data['type']) . LNG('user.registed'), false);
 			}
 		}
@@ -181,8 +181,8 @@ class userRegist extends Controller {
 			'nickName'	 => $nickName,
 			'password'	 => $data['password'],
 			'roleID'	 => $regist['roleID'],
-			'email'		 => '',
-			'phone'		 => '',
+			'email'		 => isset($data['email']) ? $data['email'] : '',
+			'phone'		 => isset($data['phone']) ? $data['phone'] : '',
 			'sizeMax'	 => floatval($regist['sizeMax']), //M
 			'status'	 => $regist['checkRegist'] == 1 ? 0 : 1, //0禁用；1启用 等待审核可以改为-1
 			'groupInfo'  => $regist['groupInfo']

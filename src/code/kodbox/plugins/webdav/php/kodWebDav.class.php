@@ -23,11 +23,17 @@ class kodWebDav extends webdavServer {
 	/**
 	 * 用户登录校验;权限判断;
 	 * 性能优化: 通过cookie处理为已登录; (避免ad域用户或用户集成每次进行登录验证;)
+	 * 
 	 */
 	public function checkUser(){
 		$userInfo = Session::get("kodUser");
 	    if(!$userInfo || !is_array($userInfo)){
     	    $user = HttpAuth::get();
+			
+			// 兼容webdav挂载不支持中文用户名; 中文名用户名编解码处理;
+			if(substr($user['user'],0,2) == '$$'){
+				$user['user'] = rawurldecode(substr($user['user'],2));
+			}
     		$find = ActionCall('user.index.userInfo', $user['user'],$user['pass']);
     		if ( !is_array($find) || !isset($find['userID']) ){
     			$this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION']));
@@ -174,11 +180,12 @@ class kodWebDav extends webdavServer {
 	}
 	
 	public function pathPut($path,$localFile=''){
+		$pathBefore = $path;
 		$path = $this->pathCreateParent($path);
 		$info = IO::infoFull($path);
 		if($info){	// 文件已存在; 则使用文件父目录追加文件名;
 			$name 		= IO::pathThis($this->pathGet());
-			$uploadPath = rtrim(IO::pathFather($path),'/').'/'.$name; //构建上层目录追加文件名;
+			$uploadPath = rtrim(IO::pathFather($info['path']),'/').'/'.$name; //构建上层目录追加文件名;
 		}else{// 首次请求创建,文件不存在; 则使用{source:xx}/newfile.txt;
 			$uploadPath = $path;
 		}
@@ -198,7 +205,7 @@ class kodWebDav extends webdavServer {
 			}
 			$result = true;	
 		}
-		$this->plugin->log("upload=$uploadPath;path=$path;res=$result;local=$localFile;size=".$size);
+		$this->plugin->log("upload=$uploadPath;path=$path,$pathBefore;res=$result;local=$localFile;size=".$size);
 		return $result;
 	}
 	private function pathPutRemoveTemp($path){
@@ -214,7 +221,11 @@ class kodWebDav extends webdavServer {
 	
 	public function pathRemove($path){
 		if(!$this->can($path,'remove')) return false;
-		return IO::remove($path);
+		$tempInfo = IO::infoFull($path);
+		if(!$tempInfo) return true;
+		
+		$toRecycle = Model('UserOption')->get('recycleOpen');
+		return IO::remove($tempInfo['path'], $toRecycle);
 	}
 	public function pathMove($path,$dest){
 		$pathUrl = $this->pathGet();
@@ -241,14 +252,18 @@ class kodWebDav extends webdavServer {
 			 */
 			if( $this->isWindows() && $toExt == 'tmp' && in_array($fromExt,$officeExt) ){
 				$result =  IO::mkfile($destFile);
-			    $this->plugin->log("move mkfile=$path;$pathUrl;$destURL;res=".$result);
+			    $this->plugin->log("move mkfile=$path;$pathUrl;$destURL;result=".$result);
 			    return $result;
 			}
 			// 都存在则覆盖；
 			if( $this->pathExists($path) && $this->pathExists($destFile) ){
 				$destFileInfo = IO::infoFull($destFile);
-				$result = IO::saveFile($path,$destFileInfo['path']);
-				$this->plugin->log("move saveFile=$path;res=".$destFile.';res='.$result);
+
+				// $content = IO::getContent($path);
+				// IO::setContent($destFileInfo['path'],$content);
+				// IO::remove($path);$result = $destFileInfo['path'];
+				$result  = IO::saveFile($path,$destFileInfo['path']);//覆盖保存;
+				$this->plugin->log("move saveFile; to=$path;toFile=".$destFileInfo['path'].';result='.$result);
 				return $result;
 			}
 			return IO::rename($path,$io->pathThis($destURL));
@@ -256,6 +271,11 @@ class kodWebDav extends webdavServer {
 		
 		if(!$this->can($path,'remove')) return false;
 		if(!$this->can($dest,'edit')) return false;
+		
+		// 名称不同先重命名;
+		if( $io->pathThis($destURL) != $io->pathThis($pathUrl) ){
+			$path = IO::rename($path,$io->pathThis($destURL));
+		}
 		return IO::move($path,$dest);
 	}
 	public function pathCopy($path,$dest){

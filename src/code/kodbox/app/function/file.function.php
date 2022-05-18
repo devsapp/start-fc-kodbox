@@ -78,11 +78,10 @@ function path_filter($path){
 
 //filesize 解决大于2G 大小问题
 //http://stackoverflow.com/questions/5501451/php-x86-how-to-get-filesize-of-2-gb-file-without-external-program
+//32位系统; 修改编译php实现兼容支持;  https://demo.kodcloud.com/#s/735psg0g
+//源码修改: zend_off_t(文件定位)修改为64位int64_t;  ftell返回值类型加宽; fseek传入值处理,校验类型处理; fstate处理;
 function get_filesize($path){
-	if(PHP_INT_SIZE >= 8 ){ //64bit
-		return (float)(abs(sprintf("%u",@filesize($path))));
-	}
-	
+	if(PHP_INT_SIZE >= 8 ) return @filesize($path);
 	$fp = fopen($path,"r");
 	if(!$fp) return 0;	
 	if (fseek($fp, 0, SEEK_END) === 0) {
@@ -127,6 +126,63 @@ function get_filesize($path){
 	}
 	fclose($fp);
 	return $result;
+}
+
+function filesize_64($file){
+	return get_filesize($file);
+}
+function ftell_64($fp){
+	return ftell($fp);
+}
+function fseek_64($fp,$pose=0,$from=SEEK_SET,$first=true){
+    return fseek($fp,$pose,$from);// php 编译兼容支持;
+    
+	if(PHP_INT_SIZE >= 8){return fseek($fp,$pose,$first);}
+	if($first) fseek($fp,0,SEEK_SET);
+	$intMax = PHP_INT_MAX;
+	$pos = floatval($pose);
+	if($pos <= $intMax){
+		fseek($fp,$pos,SEEK_CUR);
+	}else {
+		fseek($fp,$intMax,SEEK_CUR);
+		$pos -= $intMax;
+		fseek_64($fp,$pos,SEEK_CUR,false);
+	}
+}
+
+// 文件复制,支持32位系统复制大于4G文件; 命令行调用,比fopen/fwrite快;
+function copy_64($from,$dest){
+	if(!$from || !$dest || !file_exists($from)) return false;
+	if(!$GLOBALS['config']['settings']['bigFileForce']){
+		// 改php源代码后影响copy的逻辑(循环,暂未适配); 使用命令行获取;
+		$result = @copy($from,$dest);
+		if($result) return true;
+	}
+	
+	// 命令行调用复制;
+	if(function_exists("shell_exec")){
+		$command = 'cp ';
+		if($GLOBALS['config']['systemOS'] == 'windows'){
+			$command = 'COPY ';
+		}
+		$command .= escapeShell($from).' '.escapeShell($dest);
+		@shell_exec($command);
+	}else{
+		/*
+		$size   = filesize_64($from);
+		$fromFp = @fopen($from,'r');
+		$destFp = @fopen($dest,'w+');
+		$chunk  = 1024*1024*5;$start = 0;
+		while($start < $size && $size>= 0) {
+			$read = fread($fromFp,$chunk);
+			if(!strlen($read)){break;}
+			fwrite($destFp,$read);
+			$start += strlen($read);
+		}
+		fclose($fromFp);fclose($destFp);
+		*/
+	}
+	return @file_exists($dest);
 }
 
 //文件是否存在，区分文件大小写
@@ -504,7 +560,7 @@ function copy_dir($source, $dest){
 		} else {
 			$__dest = $dest;
 		}
-		$result = @copy($source,$__dest);
+		$result = copy_64($source,$__dest);
 		@chmod($__dest, 0777);
 	}else if(is_dir($source)) {
 		if ($dest[strlen($dest)-1] == '/') {
@@ -533,7 +589,7 @@ function move_file($source,$dest,$repeat_add,$repeat_type){
 	}
 	$result = intval(@rename($source,$dest));
 	if (! $result) { // windows部分ing情况处理
-		$result = intval(@copy($source,$dest));
+		$result = intval(@copy_64($source,$dest));
 		if ($result) {
 			@unlink($source);
 		}
@@ -846,13 +902,13 @@ function is_text_file($ext){
 	$extArray = array(
 		'3ds','4th','_adb','a','abap','abc','ac','acl','ada','adb','adoc','ahk','alda','am','apex','apl','app','apple-app-site-association','applescript','aql','arcconfig','arclint','as','asc','asciidoc','asl','asm','asn','asn1','asp','aspx','ass','astylerc','atom','authors','aw',
 		'b','babelrc','bak','bash','bash_history','bash_logout','bash_profile','bashrc','bat','bf','bib','brew_all_commands','bro','build','bzl',
-		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','cmake.in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher',
+		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','cmake.in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher','crt',
 		'd','dae','darglint','dart','def','depcomp','description','desktop','di','diff','dist','dockerfile','dockerfile-dist','dockerfile-master','dockerignore','dot','dox','drl','dsl','dtd','dummy','dxf','dxf-check','dxfb-check','dyalog','dyl','dylan',
 		'e','ecl','edi','editorconfig','edn','eex','ejs','el','elm','empty','epp','erb','erl','err','eslintignore','ex','example','exclude','exs',
 		'f','f77','f90','f95','factor','feature','fetch_head','filters','fingerprint','for','forth','frag','frt','fs','fsi','fsl','fsscript','fsx','fth','ftl','fun','fx',
 		'gbs','gcode','ge','gemfile','gemspec','gendocs_template','geojson','git-credentials','git-version-gen','gitattributes','gitconfig','gitflow_export','gitignore','gitignore_global','gitkeep','gitlog-to-changelog','gitmodules','glsl','gltf','gnumakefile','go','gql','gradle','groovy','gss','guardfile','guess','gunmakefile','gypi',
 		'h','hacking','haml','handlebars','hbs','head','hgignore_global','hh','hjson','hlean','hpp','hrl','hs','hta','htaccess','htgroups','htm','html','html.eex','html.erb','htpasswd','http','hx','hxml','hxx',
-		'i','iml','in','inc','inf','ini','ino','install','install-sh','installversion','intr','inx','io',
+		'i','iml','in','inc','inf','ini','ino','install','install-sh','installversion','intr','inx','io','po',
 		'j2','jack','jade','java','ji','jinja','jinja2','jl','jq','js','jsdtscope','jshintrc','jsm','json','json-check','json5','jsonld','jsp','jssm','jssm_state','jsx',
 		'key','keys','kml','ksh','kt','kts',
 		'la','latex','latte','ldr','lean','less','lesshst','lgc','lhs','license','liquid','lisp','list','lnk','local','localized','lock','log','logic','lp','lql','lrc','ls','lsl','lsp','ltx','lua','lucene',

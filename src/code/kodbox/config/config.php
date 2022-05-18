@@ -7,6 +7,7 @@
 */
 
 define('GLOBAL_DEBUG',0);//0 or 1
+define('GLOBAL_DEBUG_LOG_ALL',0);//0 or 1
 @set_time_limit(3600);//60min pathInfoMuti,search,upload,download...
 @ini_set("max_execution_time",3600);//3600
 @ini_set('request_terminate_timeout', 3600);
@@ -91,7 +92,7 @@ if (strtoupper(substr(PHP_OS, 0,3)) === 'WIN') {
 	$config['systemCharset']='utf-8';
 }
 
-if(!defined('HOST')){		define('HOST',rtrim(get_host(),'/').'/');}
+if(!defined('HOST')){		define('HOST',get_host());}
 if(!defined('WEB_ROOT')){	define('WEB_ROOT',webroot_path(BASIC_PATH) );}
 if(!defined('APP_HOST')){	define('APP_HOST',HOST.str_replace(WEB_ROOT,'',BASIC_PATH));} //程序根目录
 

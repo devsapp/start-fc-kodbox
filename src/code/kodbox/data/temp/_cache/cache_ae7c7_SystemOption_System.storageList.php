@@ -1,1 +1,0 @@
-<?php exit;?>a:1:{s:4:"ID-1";a:9:{s:4:"name";s:12:"本地存储";s:7:"sizeMax";s:4:"1024";s:6:"system";s:1:"1";s:7:"default";s:1:"1";s:6:"driver";s:5:"Local";s:6:"config";s:52:"{"basePath":".\/data\/files\/","tmp_check":"dXBaqP"}";s:2:"id";i:1;s:10:"createTime";i:1644590676;s:10:"modifyTime";i:1644590676;}}

@@ -1,6 +1,8 @@
 define(function(require, exports) {
+	var imageRemoveCallback = false;
 	var getImageArr = function(filePath,name){
 		var imageList = kodApp.imageList;
+		imageRemoveCallback =  imageList.removeCallback || false;
 		kodApp.imageList = false;
 		if(!imageList) {
 			imageList = {items:[{
@@ -20,20 +22,34 @@ define(function(require, exports) {
 					item.src,
 					item.trueImage || item.src
 				],
-				htmlEncode(title),[0,0],''
+				htmlEncode(title),[0,0],'',item
 			]);
 		});
 		return {items:items,index:imageList.index};
 	};
 	
 	//播放幻灯片时，删除图片.
-	var removeImageRequest = function(path,callback){
-		callback();
+	var removeImageRequest = function(imageItem,callback){
+		if(!imageItem || !imageItem[4] || !imageRemoveCallback) return;
+		imageRemoveCallback(imageItem[4],function(){
+			callback && callback();
+		});
+	};
+	var removeAllowCheck = function(){
+		var $btn = $('#PV_Btn_Remove');
+		imageRemoveCallback ? $btn.removeClass('hidden') : $btn.addClass('hidden');
+	}
+	var openImageAfter = function(){
+		$("#PV_Btn_Open").remove();
+		setTimeout(function(){
+			removeAllowCheck();
+			$('#PicasaView').attr('tabindex','10').focus();
+		},100);
 	};
 	var removeImage = function(){
 		var index = parseInt($('#PV_Control #PV_Items .current').attr('number'));
-		var path = myPicasa.arrItems[index][0][2];
-		removeImageRequest(path,function(){
+		var imageItem = myPicasa.arrItems[index];
+		removeImageRequest(imageItem,function(){
 			if(myPicasa.arrItems.length <=1){
 				return myPicasa.close();
 			}
@@ -42,37 +58,80 @@ define(function(require, exports) {
 				index = myPicasa.arrItems.length -1
 			}
 			myPicasa.play(myPicasa.arrItems,index);
+			openImageAfter();
 		});
 	}
+	
+	
+	var optionsList = function(storeKey,lengthMax){
+		LocalData.values = LocalData.values || {};
+		var values = LocalData.values[storeKey] || LocalData.getConfig(storeKey) || {};
+		LocalData.values[storeKey] = values;
+		var get = function(key,defaultValue){
+			return values[key] || defaultValue;
+		}
+		var set = function(key,value){
+			values[key] = value;
+			if(value == null){delete values[key];}
+			save();
+		}
+		var save = function(){
+			if(!lengthMax) return;
+			var keys = Object.keys(values);
+			if(keys.length > lengthMax){
+				var newValues = {};
+				keys = keys.slice(keys.length - lengthMax);
+				for(var i = 0; i < keys.length; i++) {
+					newValues[keys[i]] = values[keys[i]];
+				}
+				values = newValues;
+			}
+			LocalData.setConfig(storeKey,values);
+		};
+		var clear = function(){values = {};save();}
+		return {set:set,get:get,clear:clear};
+	}
+	var imageRotateList = new optionsList('imageRotate',500);
+	
 	var imageRotate = function(rotate){
 		var index = parseInt($('#PV_Control #PV_Items .current').attr('number'));
-		var path = myPicasa.arrItems[index][0][2];
-		ui.pathOperate.imageRotate(path,rotate,function(){
-			var imgSrc = function(img){
-				var str = '&picture='+UUID();
-				return img.indexOf('?') == -1 ? img+'?a=1'+str : img+str
-			}
-			var $img = $('[data-path='+pathHashEncode(path)+']').find('img');
-			var imageSmall = imgSrc(myPicasa.arrItems[index][0][0]);
-			var imgageBig = imgSrc(myPicasa.arrItems[index][0][1]);
-			
-			$("#PV_Items .current img").attr('src',imageSmall);
-			$img.attr('src',imageSmall);
-			$img.attr('data-original',imageSmall);
-			myPicasa.resetImage(imgageBig,imageSmall);
-		});
+		var image = myPicasa.arrItems[index][0];
+		// console.log(101,rotate,myPicasa.arrItems[index]);
+		var radius = parseInt(imageRotateItem(image[1],'get')) + 90;
+		imageRotateItem(image[1],radius,true);
 	}
-	var loadImageBefore = function(){
-	    var index = parseInt($('#PV_Control #PV_Items .current').attr('number'));
-		var path = myPicasa.arrItems[index][0][2];
-		var $action = $("#PV_rotate_Left,#PV_rotate_Right,#PV_Btn_Remove");
-		if(path.substr(0,4) == 'http'){
-		    $action.addClass('hidden');
-		}else{
-		    $action.removeClass('hidden');
+	var imageRotateItem = function(src,radius,isSave){
+		if(!src) return;
+		var $image = $('#PV_Picture');
+		var style  = $image.attr('style') || '';
+		var match  = style.match(/transform:\s*rotate\((\d+)deg\)/);
+		if(radius == 'get'){return match ? match[1]:0;}
+
+		var transform = radius ? 'rotate('+radius+'deg)' : '';
+		if(isSave){
+			$image.css('transition','all 0.3s');
+			setTimeout(function(){$image.css('transition','');},310);
+			if(radius % 360 == 0){radius = null;}
+			imageRotateList.set(src,radius);
 		}
+		$image.css('transform',transform);
 	};
 	
+	var timeoutHolder = false;
+	var loadImageBefore = function(){
+	    var index = parseInt($('#PV_Control #PV_Items .current').attr('number'));
+		var src   = myPicasa.arrItems[index][0][1];
+		var radius = imageRotateList.get(src,0);
+		var image = myPicasa.arrItems[index][0];
+		imageRotateItem(src,radius);
+		
+		clearTimeout(timeoutHolder);
+		$('#PV_Picture_Temp').attr('src','');
+		timeoutHolder = setTimeout(function(){
+			$('#PV_Picture_Temp').attr('src',image[0]);
+		},500);//延迟处理;
+	};
+		
 	return function(path,ext,name,appStatic){
 		requireAsync([
 			appStatic+'picasa/style/style.css',
@@ -86,12 +145,7 @@ define(function(require, exports) {
 			}
 			var images = getImageArr(path,name);
 			myPicasa.play(images.items,images.index);
-			$("#PV_Btn_Open").remove();
-			setTimeout(function(){
-				$('#PicasaView').attr('tabindex','10').focus();
-			},100);
+			openImageAfter();
 		});
 	};
-	
 });
-

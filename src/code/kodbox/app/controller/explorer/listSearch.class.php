@@ -55,6 +55,10 @@ class explorerListSearch extends Controller{
 				$list['folderList'] = array_merge($list['folderList'],$find['folderList']);
 			}
 		}
+		// 合并相同的结果;
+		$list['fileList']   = array_values(array_to_keyvalue($list['fileList'],'path'));
+		$list['folderList'] = array_values(array_to_keyvalue($list['folderList'],'path'));
+		
 		$list['pageInfo']['totalNum']  = count($list['fileList']) + count($list['folderList']);
 		$list['pageInfo']['pageTotal'] = 1;
 		$list['disableSort'] = 1;
@@ -114,6 +118,7 @@ class explorerListSearch extends Controller{
 		if(isset($param['sizeTo'])) $param['sizeTo'] = intval($param['sizeTo']);
 		if(isset($param['timeFrom'])) $param['timeFrom'] = intval($param['timeFrom']);
 		if(isset($param['timeTo'])) $param['timeTo'] = intval($param['timeTo']);
+		if(!is_array($param['option'])){$param['option'] = array();}
 		
 		$param['words'] = trim($param['words'], '/');
 		$path = $param['parentPath'];
@@ -135,7 +140,6 @@ class explorerListSearch extends Controller{
 			$sourceInfo = IO::info($path);
 		}
 		$param['parentID'] = $sourceInfo['sourceID'];
-		if(!isset($param['option'])) $param['option'] = array();
 	}
 	
 	/**
@@ -156,7 +160,7 @@ class explorerListSearch extends Controller{
 		$result = array('folderList'=> array(),'fileList'=> array());
 		$matchMax = 1000; $findNum = 0;
 		foreach($list as $item){
-			check_abort();
+			check_abort_echo();
 			$isFolder = $item['folder'];
 			if($onlyFolder && !$isFolder) continue;
 			if($onlyFile && $isFolder) continue;

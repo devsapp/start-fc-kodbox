@@ -1,1 +1,0 @@
-<?php exit;?>a:1:{s:12:"autoTaskInit";s:2:"ok";}

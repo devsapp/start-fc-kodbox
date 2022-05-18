@@ -46,8 +46,10 @@ class userMsg extends Controller {
 			'input'		 => $data['input'], // 邮箱or手机
             'language'	 => i18n::getType(),
             // 'signature'	 => Model('SystemOption')->get('systemName')
+            'config'     => isset($data['config']) ? $data['config'] : array()
 		);
-        Hook::trigger('send.sms.before', $data);
+        $res = Hook::trigger('send.sms.before', $data);
+        if ($res) return $res;  // [data,code] || false
 		return Action('user.bind')->apiRequest('sms', $data);
     }
 
@@ -95,7 +97,7 @@ class userMsg extends Controller {
         );
         foreach($init as $key => &$value) {
             if(isset($data['config'][$key])) $value = $data['config'][$key];
-        }
+        };unset($value);
         // 发件服务器信息
         if(isset($data['config']['server'])) {
             $init = array_merge($init, $data['config']['server']);

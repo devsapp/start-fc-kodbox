@@ -41,7 +41,7 @@ class explorerAuth extends Controller {
 		
 		$this->actionCheckSpace = array(//空间大小检测
 			'explorer.upload'	=> 'fileUpload,serverDownload',
-			'explorer.index'	=> 'mkdir,mkfile,fileSave,pathPast,pathCopyTo,pathCuteTo',
+			'explorer.index'	=> 'mkdir,mkfile,fileSave,pathPast,pathCopyTo,pathCuteTo,unzip',
 			'explorer.editor' 	=> 'fileSave',
 			'explorer.share'	=> 'fileUpload',
 		);
@@ -95,7 +95,8 @@ class explorerAuth extends Controller {
 					}
 					$this->isShowError = true;
 					if($errorNum == count($authTypeArr)){
-						$this->errorMsg(LNG('explorer.noPermissionAction'),1005);
+						$msg = $this->lastError ? $this->lastError : LNG('explorer.noPermissionAction');
+						$this->errorMsg($msg,1005);
 					}
 				}
 				break;
@@ -117,8 +118,10 @@ class explorerAuth extends Controller {
 	}
 	public function spaceAllow($path){
 		$parse  = KodIO::parse($path);
-		$info 	= IO::infoAuth($parse['pathBase']);//目标存储;
+		if($parse['isTruePath'] != true) return true;
+		if($parse['driverType'] == 'io') return true;
 		
+		$info = IO::infoAuth($parse['pathBase']);//目标存储;
 		// 目标在回收站中: 不支持保存/上传/远程下载/粘贴/移动到此/新建文件/新建文件夹;
 		if($info['isDelete'] == '1'){
 			$msg = $info['type'] == 'file' ? LNG('explorer.pathInRecycleFile') : LNG("explorer.pathInRecycle");
@@ -126,7 +129,9 @@ class explorerAuth extends Controller {
 		}
 		$space  = Action("explorer.list")->targetSpace($info);
 		if(!$space || $space['sizeMax']==0 ) return true; // 没有大小信息,或上限为0则放过;
-		return $space['sizeMax'] > $space['sizeUse'];
+		$result = $space['sizeMax'] > $space['sizeUse'];
+		if(!$result){$this->lastError = LNG('explorer.spaceIsFull');}
+		return $result;
 	}
 
 	public function checkSpaceOnCreate($sourceInfo){
@@ -220,15 +225,18 @@ class explorerAuth extends Controller {
 	 */
 	public function can($path,$action){
 		$isRoot = _get($GLOBALS,'isRoot');
+		$parse  = KodIO::parse($path);
+		$ioType = $parse['type'];
+		
+		if( $ioType == KodIO::KOD_SHARE_LINK && $action == 'view' ) return true;		
 		if(!$isRoot && !$this->canCheckRole($action)){
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1021);
 		}
-		$parse  = KodIO::parse($path);
-		$ioType = $parse['type'];
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
 			if( request_url_safe($path) ) return $action == 'view';
 			if($isRoot && $this->config["ADMIN_ALLOW_IO"]) return true;
+			if($isRoot && $parse['id'] == 'systemRecycle') return true;
 			return $this->errorMsg(LNG('explorer.pathNotSupport'),1001);
 		}
 		
@@ -312,8 +320,7 @@ class explorerAuth extends Controller {
 		$this->lastError = $msg.$code;
 		return false;
 	}
-	
-	
+	public function getLastError(){return $this->lastError;}
 	public function canView($path){return $this->can($path,'view');}
 	public function canRead($path){return $this->can($path,'download');}
 	public function canWrite($path){return $this->can($path,'edit');}
@@ -374,6 +381,13 @@ class explorerAuth extends Controller {
 		if($timeout > 0 && $timeout < time()){
 			return $this->errorMsg(LNG('explorer.share.expiredTips'));
 		}
+
+		// 内部协作分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
+		if(!Action('explorer.authUser')->canShare($shareInfo)){
+			$userInfo = Model('User')->getInfoSimpleOuter($shareInfo['userID']);
+			$tips = '('.$userInfo['name'].' - '.LNG('common.noPermission').')';
+			return $this->errorMsg(LNG('explorer.share.notExist').$tips);
+		}
 		
 		// 物理路径,io路径;
 		if($shareInfo['sourceID'] == '0'){
@@ -383,6 +397,7 @@ class explorerAuth extends Controller {
 			return $this->checkAuthMethod($shareInfo['auth']['authValue'],$method);
 		}
 		
+		if (!$sourceID) $sourceID = $shareInfo['sourceID'];
 		$sourceInfo = Model('Source')->sourceInfo($sourceID);
 		$parent = Model('Source')->parentLevelArray($sourceInfo['parentLevel']);
 		array_push($parent,$sourceID);
