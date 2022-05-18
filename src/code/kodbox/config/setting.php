@@ -52,9 +52,10 @@ $config['settings']['searchContent'] 	= 1;		// 搜索:允许文件内容搜索
 $config['settings']['searchMutil'] 		= 1;		// 搜索:开启批量搜索
 $config['settings']['allowSEO'] 		= 1; 		// 允许SEO收录外链分享;
 $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
+$config['settings']['bigFileForce'] 	= 0; 		// 32位时强制允许大文件上传; https://demo.kodcloud.com/#s/735psg0g 
 
-$config["ADMIN_ALLOW_IO"] 				= 1;		// 其他部门or用户目录操作开关，仅限管理员
-$config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 物理路径操作开关，仅限管理员
+$config["ADMIN_ALLOW_IO"] 				= 1;		// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
+$config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
 $config['APP_HOST_LINK'] 				= APP_HOST;	// 分享链接站点url; 可在setting_user中覆盖;
 $config['PLUGIN_HOST'] 					= APP_HOST.str_replace(BASIC_PATH,'',PLUGIN_DIR);//插件url目录;
 $config['PLUGIN_HOST_CDN_APP'] 			= '';//支持配置到cdn的插件; 插件名,逗号隔开;
@@ -105,7 +106,7 @@ $config['systemOption'] = array(
 	'tagContainMax'				=> 1000, 		// 标签中内容最大数
 
 	'fileNameLengthMax'			=> 256, 		// 文件名最大长度
-	'fileDescLengthMax'			=> 1000, 		// 文件描述最大长度
+	'fileDescLengthMax'			=> 5000, 		// 文件描述最大长度
 	'historyDescLengthMax'		=> 500, 		// 文件版本说明最大长度
 	
 	// 请求限制;
@@ -120,7 +121,7 @@ $config['cache'] = array(
 	'sessionType'	=> 'file',	//缓存方式 database/file/redis/memcached
 	'sessionTime'	=> 3600*4,	//session失效时间 
     'cacheType'		=> 'file',	//缓存方式 database/file/redis/memcached
-	'lockTimeout'	=> 5,		//并发锁获取超时时间 5s;
+	'lockTimeout'	=> 15,		//并发锁获取超时时间 15s;
 	'cacheTime'		=> 3600*5,	//缓存默认时间;
 	    
     'file'	=> array('path' => TEMP_PATH.'_cache/'),
@@ -186,7 +187,7 @@ $config['settings']['appType'] = array(
 );
 $config['defaultPlugins'] = array(
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
-	'simpleClock','client','webodf','webdav','toolsCommon',
+	'simpleClock','client','webodf','webdav','toolsCommon','oauth',
 	'yzOffice','officeViewer',
 );
 
@@ -220,18 +221,32 @@ $config['settingSystemDefault'] = array(
 	'groupAuthOuther'   => 1, 			// 子部门网盘文档可授权给外部部门或成员,
 	'currentVersion'	=> KOD_VERSION, // 当前版本
 	'orderSort'         => 'desc',      // sort字段排序方式;默认从大到小
+	'dateFormat'		=> 'Y-m-d',		// 默认 Y-m-d:YYYY-MM-DD; d/m/Y:DD/MM/YYYY; m/d/Y:MM/DD/YYYY; 
+										// https://en.wikipedia.org/wiki/Date_format_by_country
 
 	'fileEncryption'	=> 'keepName',	// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
-	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号; 某账号连续输入5次后锁定30s后才能登录;
+	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号开关; 某账号连续输入5次后锁定30s后才能登录;
+	'passwordLockNumber'=> '5',			// 密码连续错误允许次数;
+	'passwordLockTime'	=> '60',		// 密码连续错误锁定时间;
+	
 	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
 	'loginCheckAllow'	=> '',			// 登录限制
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
-	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
+	'downloadZipLimit'	=> '0',			// 文件夹打包下载限制,默认为0, 0为不限制; 为避免服务器性能消耗过大,文件夹过大时限制打包下载
+	'showFileLink'		=> '1',			// 文件外链展示开关;默认开启; (关闭后,文件属性不再显示外链连接)
+	'showFileMd5'		=> '1',			// 文件md5是否展示; 默认开启; (关闭后,文件属性不再显示文件md5)
 	'systemRecycleOpen' => '0',			// 系统回收站开启关闭;
 	'systemRecycleClear'=> '10',		// 系统回收站自动清除,N天以前内容;
 	'systemBackup'		=> '1',			// 文档自动备份;
-	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
 	'groupTagAllow' 	=> '0',			// 是否启用部门公共标签
+	
+	// 分享相关设置;
+	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
+	'shareLinkAllow'	=> '1',			// 启用/禁用外链分享;
+	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
+	'shareLinkPasswordAllowEmpty'	=> '1',		// 外链分享允许密码为空,关闭后将强制设置密码;
+	'shareLinkAllowGuest'			=> '1',		// 外链分享允许未登录游客访问
+	
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
 	'wallpageDesktop'	=> "1,2,3,4,5,6,7,8,9,10,11,12,13",
@@ -246,7 +261,6 @@ $config['settingSystemDefault'] = array(
 		"roleID" 			=> "2",			// 默认角色
 		"groupInfo" 		=> '{"1":"2"}',	// 默认部门
 		"allowPhone"		=> "1",			// 允许手机号绑定,找回密码;
-		"loginWith"			=> array('qq', 'weixin'),
 	),
 	'allowNickNameRpt'	=> false,			// 允许用户昵称重复
 	'menu'	=> array(		//初始化默认菜单配置
@@ -256,7 +270,8 @@ $config['settingSystemDefault'] = array(
 		array('name'=>'官网','url'=>'https://kodcloud.com',"icon"=>"ri-home-line-3",'target'=>'inline','use'=>'1')
 	),
 );
-
+$config['settingSystemDefault']['searchFulltext'] = 0;		// like%% 转为全文索引
+$config['settingSystemDefault']['searchFulltextForce'] = 0;	// 完整匹配; (否则会对$words进行分词,包含一部分也作为结果;会多出结果) 
 
 //新用户初始化默认配置
 $config['settingDefault'] = array(
@@ -557,3 +572,15 @@ if (file_exists(BASIC_PATH.'config/setting_user_more.php')) {
 	include_once(BASIC_PATH.'config/setting_user_more.php');
 }
 if(!defined('INSTALL_CHANNEL')){define('INSTALL_CHANNEL','');}
+
+
+if(GLOBAL_DEBUG_LOG_ALL){
+	Hook::bind('beforeShutdown','writeLogAll');
+	Hook::bind('show_json','writeLogAll');
+}
+function writeLogAll($data=false){
+	$caller = get_caller_info();
+	$trace  = think_trace('[trace]');
+	$ua = $_SERVER['HTTP_USER_AGENT'];
+	write_log(array("in"=>$GLOBALS['in'],'ua'=>$ua,'out'=>$data,'call'=>$caller,'trace'=>$trace),'debug');
+}

@@ -1,0 +1,1 @@
+<?php exit;?>a:15:{s:6:"userID";i:1;s:4:"name";s:5:"admin";s:6:"roleID";i:3;s:5:"email";s:0:"";s:5:"phone";s:0:"";s:8:"nickName";s:15:"系统管理员";s:6:"avatar";s:0:"";s:3:"sex";i:0;s:8:"password";s:32:"90052ca503d3b46fa6b2bc99cd0cb291";s:7:"sizeMax";d:0;s:7:"sizeUse";i:1703;s:6:"status";i:1;s:9:"lastLogin";i:1652170893;s:10:"modifyTime";i:1652170893;s:10:"createTime";i:1652170810;}

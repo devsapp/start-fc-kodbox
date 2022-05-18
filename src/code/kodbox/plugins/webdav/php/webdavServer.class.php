@@ -7,6 +7,7 @@
  * 文档:     http://www.webdav.org/specs/rfc2518.html
  */
 class webdavServer {
+	public $lastError = '';
 	public function __construct($root,$DAV_PRE_PATH) {
 		$this->root = $root;
 		$this->initPath($DAV_PRE_PATH);
@@ -14,10 +15,19 @@ class webdavServer {
 	}
 	public function initPath($DAV_PRE_PATH){
 		$uri  = rtrim($_SERVER['REQUEST_URI'],'/').'/'; //带有后缀的从domain之后部分;
+		if(!$this->pathCheck($uri)){//路径长度限制
+			$this->lastError = LNG('common.lengthLimit');
+			$this->response(array("code"=>404));exit;
+		}
 		$this->urlBase  = substr($uri,0,strpos($uri,$DAV_PRE_PATH)+1); //$find之前;
 		$this->urlBase  = rtrim($this->urlBase,'/').$DAV_PRE_PATH;
-		$this->path = $this->parsePath($this->pathGet());
-	}	
+		$this->uri   	= $this->pathGet();
+		$this->path 	= $this->parsePath($this->uri);
+		if(strpos($uri,$DAV_PRE_PATH) === false){
+			$this->lastError = LNG('common.noPermission');
+			$this->response(array("code"=>404));exit;
+		}
+	}
 	public function checkUser(){
 		$user = HttpAuth::get();
 		if($user['user'] == 'admin' && $user['pass'] == '123'){
@@ -25,6 +35,11 @@ class webdavServer {
 		}
 		HttpAuth::error();
 	}
+	private function pathCheck($path){
+		$PATH_LENGTH_MAX = 4096;//路径最长限制;
+		return strlen($path) >= $PATH_LENGTH_MAX ? false:true;
+	}
+	
 	public function start(){
 	    $this->checkUser();
 		$method = 'http'.HttpHeader::method();
@@ -97,7 +112,7 @@ class webdavServer {
 		
 		$result  = array(
 			'href' 			=> KodIO::clear($this->urlBase.$pathAdd),
-			'modifyTime' 	=> @gmdate("D, d M Y H:i:s ",$item['modifyTime']),
+			'modifyTime' 	=> @gmdate("D, d M Y H:i:s",$item['modifyTime']).' GMT',
 			'createTime' 	=> @gmdate("Y-m-d\\TH:i:s\\Z",$item['createTime']),
 			'size' 			=> $item['size'] ? $item['size']:0,
 		);
@@ -109,12 +124,34 @@ class webdavServer {
 		if ($itemFile['type'] == 'folder') {//getetag
 			$xmlAdd = "<D:resourcetype><D:collection/></D:resourcetype>";
 			$xmlAdd.= "<D:getcontenttype>httpd/unix-directory</D:getcontenttype>";
+			$item['href'] = rtrim($item['href'],'/').'/';
+			if(isset($_SERVER['HTTP_DATE']) && isset($_SERVER['HTTP_DEPTH'])){
+				// goodsync同步处理;HTTP_DATE/HTTP_DEPTH; 首次列表展开失败问题处理;
+				$result['modifyTime'] = $_SERVER['HTTP_DATE'];
+			}
 		}else{
 			$ext    = $itemFile['ext'] ? $itemFile['ext']:get_path_ext($itemFile['name']);
 			$mime   = get_file_mime($ext);
 			$xmlAdd = '<D:resourcetype/>';
 			$xmlAdd.= "<D:getcontenttype>{$mime}</D:getcontenttype>";
 		}
+		
+		$infoMore = array();
+		$picker = array(
+			'hasFile','hasFolder','fileInfo','fileInfoMore','oexeContent','parentID','isTruePath',
+			'isReadable','isWriteable','sourceRoot','icon','iconClassName','children',
+		);
+		foreach ($picker as $key){
+			if(array_key_exists($key,$itemFile)){$infoMore[$key] = $itemFile[$key];}
+		}
+		if($itemFile['type'] == 'file'){
+			$param = array('path'=>$itemFile['path']);
+			$infoMore['fileOutLink'] = Action('user.index')->apiSignMake('explorer/index/fileOut',$param);
+		}
+		if($infoMore){
+			$xmlAdd.= "<D:extendFileInfo>".base64_encode(json_encode($infoMore))."</D:extendFileInfo>";
+		}
+		
 		return "
 		<D:response>
 			<D:href>{$item['href']}</D:href>
@@ -144,24 +181,23 @@ class webdavServer {
 		return $list;
 	}
 
-	public function httpPROPFIND() {
+	public function httpPROPFIND(){
 		$listFile = $this->pathList($this->path);
 		$list = $this->pathListMerge($listFile);
 		$pathInfo = $listFile['current'];
 		if(!is_array($list) || $pathInfo['exists'] === false ){//不存在;
-			return array(
-				"code" => 404,
-				"body" => 
-				'<D:error xmlns:D="DAV:" xmlns:S="http://kodcloud.com">
-					<S:exception>ObjectNotFound</S:exception><S:message>not exist</S:message>
-				</D:error>'
-			);
+			return array("code" => 404,"body" => $this->errorBody('ObjectNotFound','not exist'));
 		}
 		if(isset($listFile['folderList'])){
 			$pathInfo['type'] = 'folder';
 		}		
 		//只显示属性;
 		$isInfo = $pathInfo['type'] == 'file' || HttpHeader::get('Depth') == '0';
+		// kodbox webdav挂载获取文件夹属性;
+		if( $pathInfo['type'] == 'folder' && 
+			HttpHeader::get('X_DAV_ACTION') == 'infoChildren'){
+			$pathInfo = IO::infoWithChildren($pathInfo['path']);
+		}
 		if($isInfo){
 			$list = array($pathInfo);
 		}else{
@@ -173,8 +209,18 @@ class webdavServer {
 			$out .= $this->parseItemXml($itemFile,$isInfo);
 		}
 		// write_log([$this->pathGet(),$this->path,$pathInfo],'webdav');
+		$code = 207;//207 => 200;
+		if(strstr($this->uri,'.xbel')){$code = 200;} // 兼容floccus
+
+		// 扩展kod内容;
+		$infoMore = array();
+		$picker   = array('groupShow','pageInfo','targetSpace');
+		foreach ($picker as $key){
+			if(array_key_exists($key,$listFile)){$infoMore[$key] = $listFile[$key];}
+		}
+		if($infoMore){$out.= "<D:extendFileList>".base64_encode(json_encode($infoMore))."</D:extendFileList>";}
 		return array(
-			"code" => 207,
+			"code" => $code,
 			"body" => "<D:multistatus xmlns:D=\"DAV:\">\n{$out}\n</D:multistatus>"
 		);
 	}
@@ -207,9 +253,10 @@ class webdavServer {
 		return array(
             'code'	  => 200,
             'headers' => array(
-                'DAV: 2',
+                'DAV: 1, 2, 3, extended-kodbox',
                 'MS-Author-Via: DAV',
                 'Allow: OPTIONS, PROPFIND, PROPPATCH, MKCOL, GET, PUT, DELETE, COPY, MOVE, LOCK, UNLOCK, HEAD',
+				'Accept-Ranges: bytes',
                 'Content-Length: 0',
             )
         );
@@ -338,23 +385,37 @@ class webdavServer {
 		return '';
 	}
 	
+	public function getLastError(){return $this->lastError;}
+	public function errorBody($title='',$desc=''){
+		if(!$desc){$desc = $this->getLastError();}
+		return 
+		'<D:error xmlns:D="DAV:" xmlns:S="http://kodcloud.com">
+			<S:exception>'.htmlentities($title).'</S:exception>
+			<S:message>'.htmlentities($desc).'</S:message>
+		</D:error>';
+	}
+	
 	/**
     * 输出应答信息
     * @param array $data [header:array,code:int,body:string]
     */
-    public static function response($data) {
+    public function response($data) {
         $headers   = is_array($data['headers']) ? $data['headers'] :array();
 		$headers[] = HttpHeader::code($data['code']);
 		$headers[] = 'Pragma: no-cache';
-		$headers[] = 'Cache-Control: no-cache';		
+		$headers[] = 'Cache-Control: no-cache';
+		$headers[] = 'X-DAV-BY: kodbox';
         foreach ($headers as $header) {
             header($header);
         }
+		
+		if($data['code'] >= 400 && !$data['body']){
+			$data['body'] = $this->errorBody();
+		}
 		// write_log(array($data,$header),'webdav');
         if (is_string($data['body'])) {
         	header('Content-Type: text/xml; charset=UTF-8');
-        	$body = '<?xml version="1.0" encoding="utf-8"?>'."\n".$data['body'];
-			echo $body;
+        	echo '<?xml version="1.0" encoding="utf-8"?>'."\n".$data['body'];
         }
 	}
 }

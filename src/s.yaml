@@ -25,7 +25,7 @@ vars:
   region: "{{ region }}" 
   service:
     name: "{{ serviceName }}"
-    description: 'Serverless Devs Web Framework Service'
+    description: 'NAS+OSS UI file manager be deployed by Serverless Devs'
     nasConfig: auto
 
 services:
@@ -46,12 +46,13 @@ services:
       service: ${vars.service}
       function:
         name: "{{ functionName }}"
-        description: 'Serverless Devs Web Framework kodbox  Function'
+        description: 'kodbox  Function'
         codeUri: './code'
         runtime: custom
         timeout: 7200
         memorySize: 3072
         instanceConcurrency: 16
+        caPort: 80
         customRuntimeConfig:
           command:
             - bash
@@ -88,6 +89,7 @@ services:
         name: keep-warm
         description: 'Serverless Devs Web Framework Helper Function'
         codeUri: './helper'
+        handler: index.handler
         runtime: python3
         timeout: 120
         memorySize: 128

@@ -1,1 +1,0 @@
-<?php exit;?>a:5:{s:4:"code";b:1;s:7:"timeUse";s:6:"0.0805";s:7:"timeNow";s:15:"1644810674.4583";s:4:"data";s:27:"压缩完成大小:10.45 kB";s:4:"info";s:22:"/Users/songluo/a/a.zip";}

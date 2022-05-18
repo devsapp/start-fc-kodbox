@@ -47,7 +47,8 @@ class explorerUpload extends Controller{
 		$uploader->fileName = $this->pathAllowReplace($uploader->fileName);
 		$savePath = rtrim($savePath,'/').'/'.$uploader->fileName;
 		$repeat = Model('UserOption')->get('fileRepeat');
-		$repeat = isset($this->in['repeatType']) ? $this->in['repeatType'] : $repeat;
+		$repeat = isset($this->in['fileRepeat']) ? $this->in['fileRepeat'] : $repeat;
+		$repeat = isset($this->in['repeatType']) ? $this->in['repeatType'] : $repeat; // 向下兼容pc客户端
 		
 		// 文件保存; 必须已经先存在;
 		if($this->in['fileSave'] == '1'){
@@ -56,6 +57,9 @@ class explorerUpload extends Controller{
 			if(!$info){
 				show_json(LNG("common.pathNotExists"),false);
 			}
+			
+			$this->in['name'] = $info['name'];
+			$uploader->fileName = $this->pathAllowReplace($info['name']);
 			$parent = IO::pathFather($info['path']);
 			if(!$parent){show_json(LNG("common.pathNotExists"),false);}
 			$savePath = rtrim($parent,'/').'/'.$info['name'];// 重新构造路径 父目录+文件名;
@@ -77,7 +81,7 @@ class explorerUpload extends Controller{
 		if($path){
 			show_json(LNG("explorer.upload.success"),true,$this->uploadInfo($path));
 		}else{
-			show_json(LNG("explorer.upload.error"),false);
+			show_json(IO::getLastError(LNG("explorer.upload.error")),false);
 		}
 	}
 	private function uploadInfo($path){
@@ -139,12 +143,17 @@ class explorerUpload extends Controller{
 			),
 			"uploadLinkInfo"	=> IO::uploadLink($savePath, $size),//前端上传信息获取;
 			"uploadToKod"		=> $isSource,
+			"uploadChunkSize"	=> $this->config['settings']['upload']['chunkSize'],
 			"kodDriverType"		=> $default['driver'],
 		);
 		$linkInfo = &$infoData['uploadLinkInfo'];
 		if(isset($linkInfo['host'])){
 		    $linkInfo['host'] = str_replace("http://",'//',$linkInfo['host']);
 		}
+		
+		// 保留参数部分; kod挂载kod的webdav前端上传;
+		if($this->in['addUploadParam']){$infoData['addUploadParam'] = $this->in['addUploadParam'];} // server;
+		if($linkInfo['webdavUploadTo']){$infoData = $linkInfo;}	// webdav client 首次检测中转访问;
 		
 		if( $this->in['checkType'] == 'matchMd5' && 
 			!empty($this->in['checkHashMd5']) && 

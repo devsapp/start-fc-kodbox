@@ -1,7 +1,3 @@
-# 注意
-
-请不要删除这个目录， 这个目录是托管在 FC 的 NAS UI 管理程序
-
 # kodbox
 
 [![Home page](https://img.shields.io/badge/home-page-yellow.svg?style=flat)](http://kodcloud.com) [![GPLV3 License](https://img.shields.io/badge/Licence-GPLV3-green.svg?style=flat)](http://kodcloud.com)

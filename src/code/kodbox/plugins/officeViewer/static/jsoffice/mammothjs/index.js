@@ -1,5 +1,6 @@
 (function(){
-    // node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
+    // 1.get browser.js: run 'make setup' or read makefile;
+    // 2.get browser.min.js: node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
     // 给页面添加样式
     var pageStyle = function(value){
         $('.page-box').addClass($.isWap ? 'is-in-wap' : 'not-in-wap');
@@ -48,31 +49,33 @@
                 "image/svg+xml": true,
                 "image/tiff": true
             };
-            if (!imgTypeAll[image.contentType]) {
-                delete image.style;
-                return {src: BASE_URL + 'jsoffice/mammothjs/images/img-error.jpg'}
-            }
             return image.read("base64").then(function(imageBuffer) {
+                if (!imgTypeAll[image.contentType]) {
+                    // image.style += 'border:1px solid #eee;';
+                    return {src: BASE_URL + 'jsoffice/mammothjs/images/error.svg'}
+                }
                 return {src: "data:" + image.contentType + ";base64," + imageBuffer};
             });
         })
     };
 
     // 加载文件
-    page.getFileInfo(function(file){
+    page.getFileInfo(function(file, tipsLoading){
         mammoth.convertToHtml({arrayBuffer: file.content}, options)
         .then(function(result){
             // console.log('转换结果',result)
             $("#output").html(result.value);
-            $('body').addClass('page-loaded');
+            // $('body').addClass('page-loaded');
+            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
             // 输出解析错误信息
             for(var i in result.messages) {
                 console.warn(result.messages[i].message)
             }
             pageStyle(!!result.value);
         }).catch(function(err){
-            console.error(err);
+            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
             page.showTips('文件损坏，或包含不支持的内容格式！');
+            console.error(err);
         }).done();
     });
 })();

@@ -22,6 +22,7 @@ class adminSetting extends Controller {
 		foreach ($removeKey as $key) {
 			unset($data[$key]);
 		}
+		unset($data['regist']['loginWith']);	// 兼容旧版已存在的数据
 		
 		// 根部门名称;
 		$groupRoot = Model('Group')->where(array("parentID"=>0))->find();
@@ -99,7 +100,7 @@ class adminSetting extends Controller {
 			}
 			// 一级目录最多5个;超出自动添加到子目录; 前端自适应处理
 			// if($menuNum >= 5){$theMenu['subMenu'] = 1;}
-		}
+		};unset($theMenu);
 		return $options;
 	}
 

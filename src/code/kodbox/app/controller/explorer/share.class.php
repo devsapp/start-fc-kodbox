@@ -58,7 +58,17 @@ class explorerShare extends Controller{
 		return urlApi('explorer/share/file',"hash={$hash}");
 	}
 	
+	public function linkSafe($path,$downFilename=''){
+		if(!$path || !$info = IO::info($path)) return;
+		$link = Action('user.index')->apiSignMake('explorer/index/fileOut',array('path'=>$path));
+		
+		$addParam = '&name=/'.rawurlencode($info['name']);
+		$addParam .= $downFilename ? '&downFilename='.rawurlencode($downFilename):'';
+		return $link.$addParam;
+	}
+	
 	public function linkOut($path,$token=false){
+		if(!defined("USER_ID")){define("USER_ID",0);}
 		$parse  = KodIO::parse($path);
 		$info   = IO::info($path);
 		$apiKey = 'explorer/index/fileOut';
@@ -165,7 +175,13 @@ class explorerShare extends Controller{
 		if($share['sourceInfo']['isDelete'] == '1'){
 			show_json(LNG('explorer.share.notExist'),30100);
 		}
-		
+		//外链分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
+		if(!Action('explorer.authUser')->canShare($share)){
+			$userInfo = Model('User')->getInfoSimpleOuter($share['userID']);
+			$tips = '('.$userInfo['name'].' - '.LNG('common.noPermission').')';
+			show_json(LNG('explorer.share.notExist') .$tips,30100);
+		}
+
 		//检测是否过期
 		if($share['timeTo'] && $share['timeTo'] < time()){
 			show_json(LNG('explorer.share.expiredTips'),30101,$this->get(true));

@@ -2,9 +2,9 @@
 return array(
 	'webdav.meta.name'			=> "WebDAV 挂载",
 	'webdav.meta.title'			=> "WebDAV 挂载到网络驱动器",
-	'webdav.meta.desc'			=> "可道云文档可以通过挂在到当前电脑或APP,文件管理可以和本地硬盘一样方便快捷;同时可以实时编辑保存文件",
+	'webdav.meta.desc'			=> "网盘文档可以通过挂在到当前电脑或APP,文件管理可以和本地硬盘一样方便快捷;同时可以实时编辑保存文件",
 	'webdav.config.isOpen'		=> "开启WebDAV服务",
-	'webdav.config.isOpenDesc'	=> "开启后用户即可通过webdav挂载可道云服务",
+	'webdav.config.isOpenDesc'	=> "开启后用户即可通过webdav挂载网盘的目录",
 	'webdav.config.pathAllow'	=> "开放根目录位置",
 	'webdav.config.pathAllowDesc'	=> "登陆挂载后根路径位置; 全部---包含个人网盘企业网盘收藏夹等(收藏夹支持收藏任何路径)",
 	'webdav.config.pathAllowAll'	=> "全部",
@@ -29,4 +29,12 @@ return array(
 	'webdav.help.others'		=> "<b>其他客户端及系统</b>: 明确地址为上述webdav地址,账号密码为自己登陆账号即可，基本流程类似
 	<br/>Android,iOS移动端设备推荐:<a href='http://www.estrongs.com/' target='_blank'>ES文件浏览器</a>",
 	'webdav.help.windowsTips'	=> "首次使用需要取消上传及http限制,下载此文件后双击运行",
+	
+	'webdav.config.tab1'				=> 'WebDAV服务',
+	'webdav.config.tab2'				=> '存储挂载',	
+	'webdav.config.mountWebdav'			=> '挂载webdav存储',
+	'webdav.config.mountWebdavDesc'		=> '开启后支持挂载: 后台--存储管理中添加存储,选择存储类型选择webdav即可',
+	'webdav.config.mountDetail1'		=> '支持挂载其他webdav服务器,作为本机存储',
+	'webdav.config.mountDetail2'		=> '可挂载其他kodbox提供的webdav, 多个kodbox进行互联互通',
+	'webdav.config.mountDetail3'		=> '挂载服务为kodbox提供时, 前端上传下载直传,不走服务器中转',
 );

@@ -1,6 +1,8 @@
 define(function(require, exports) {
+	var imageRemoveCallback = false;
 	var getImageArr = function(filePath,name){
 		var imageList = kodApp.imageList;
+		imageRemoveCallback =  imageList.removeCallback || false;
 		kodApp.imageList = false;
 		if(!imageList) {
 			imageList = {items:[{
@@ -19,12 +21,14 @@ define(function(require, exports) {
 				$dom:item.$dom || false,
 				msrc:item.msrc || item.src,
 				title:htmlEncode(title),
-				w:item.width  || 0,h:item.height  || 0
+				w:item.width  || 0,h:item.height  || 0,
+				data:item,
 			});
 		});
 		return {items:items,index:imageList.index};
 	};
 	
+	var gallery  = false;
 	var initView = function(path,ext,name,photoSwipeTpl){
 		var imageList = getImageArr(path,name);
 		if($('.pswp_content').length == 0){
@@ -45,6 +49,9 @@ define(function(require, exports) {
 			fullscreenEl : true,
 			history:false,
 			preload:[1,5],
+			isClickableElement:function(e){
+				return true;
+			},
 			getThumbBoundsFn: function(index) {
 				var item = imageList.items[index];
 				if(!item || !item.$dom || item.$dom.length == 0){//目录切换后没有原图
@@ -81,7 +88,7 @@ define(function(require, exports) {
 			options.history = true;
 		}
 		options.index = imageList.index;
-		var gallery = new PhotoSwipe($('.pswp').get(0),PhotoSwipeUI_Default,imageList.items,options);
+		gallery = new PhotoSwipe($('.pswp').get(0),PhotoSwipeUI_Default,imageList.items,options);
 		gallery.loadFinished = false;
 		gallery.listen('gettingData', function(index, item) {
 			if (item.w < 1 || item.h < 1) {
@@ -89,7 +96,12 @@ define(function(require, exports) {
 				img.onload = function() {
 					item.w = this.width;
 					item.h = this.height;
-					try {gallery.updateSize(true);}catch(err){}
+					try {
+						gallery.updateSize(true);
+						if(gallery.currItem == item){
+							$(gallery.currItem.container).parents('.pswp__item').removeClass('loading');
+						}
+					}catch(err){}
 				}
 				img.src = item.src;
 			}
@@ -100,7 +112,6 @@ define(function(require, exports) {
 				item.w = rect.w * 25;
 				item.h = rect.h * 25;
 				gallery.loadFinished = true;
-				// console.log(123123,item,rect);
 			}
 		});
 		gallery.listen('close', function(){
@@ -108,7 +119,61 @@ define(function(require, exports) {
 				$(gallery.container).find('.pswp__zoom-wrap').fadeOut(200);
 			},300);
 		});
+		
+		$('.pswp__container').addClass('init-first');
+		setTimeout(function(){
+			$('.pswp__container').removeClass('init-first');
+			if(imageList.items.length == 1){ // 单张图片, ios浏览器异常情况处理;
+				var htmlCurrent = $('.pswp .pswp__item.current .pswp__zoom-wrap').html();
+				$(gallery.currItem.container).html(htmlCurrent);
+			}
+		},800);
+		
 		gallery.init();
+		gallery.listen('bindEvents',imageRotateAuto);
+		
+		// 最后一个处理;
+		if(imageList.items.length == imageList.index + 1){
+			setTimeout(function(){
+				gallery.next();gallery.prev();
+			},400);
+		}
+		
+		// 删除;
+		gallery.removeCurrent = function(){
+			if(!gallery.items || gallery.items.length <= 1){
+				return gallery.close();
+			}
+			var resetHolder = function(){
+				var index = gallery.getCurrentIndex();
+				for (var i = 0; i < gallery.itemHolders.length; i++) {
+					var holder = gallery.itemHolders[i];
+					gallery.setContent(holder,index-1+i);
+				}
+			}
+			var index = gallery.getCurrentIndex();
+			if(gallery.items.length == 2 && index == 0){
+				gallery.next();
+				gallery.items.splice(index,1);
+				resetHolder();gallery.prev();
+				return;
+			}
+			gallery.items.splice(index,1);resetHolder();
+			gallery.prev();gallery.goTo(index);
+		};
+		
+		gallery.removeImage = function(){
+			if(!imageRemoveCallback) return;
+			imageRemoveCallback(gallery.currItem.data,function(){
+				gallery.removeCurrent();
+			});
+		}
+		setTimeout(function(){
+			var $btnRemove = $('.pswp__button--remove');
+			$btnRemove.addClass('hidden');
+			if(imageRemoveCallback){$btnRemove.removeClass('hidden');}
+		},10);
+		window.photoSwipeView = gallery;
 		
 		// 解决滚动穿透问题;(UC,内嵌网页等情况)
 		$(".pswp__bg").scrollTop($(".pswp__bg").scrollInnerHeight() / 2);
@@ -131,6 +196,119 @@ define(function(require, exports) {
 			}
 		});
 	}
+	
+	var optionsList = function(storeKey,lengthMax){
+		LocalData.values = LocalData.values || {};
+		var values = LocalData.values[storeKey] || LocalData.getConfig(storeKey) || {};
+		LocalData.values[storeKey] = values;
+		var get = function(key,defaultValue){
+			return values[key] || defaultValue;
+		}
+		var set = function(key,value){
+			values[key] = value;
+			if(value == null){delete values[key];}
+			save();
+		}
+		var save = function(){
+			if(!lengthMax) return;
+			var keys = Object.keys(values);
+			if(keys.length > lengthMax){
+				var newValues = {};
+				keys = keys.slice(keys.length - lengthMax);
+				for(var i = 0; i < keys.length; i++) {
+					newValues[keys[i]] = values[keys[i]];
+				}
+				values = newValues;
+			}
+			LocalData.setConfig(storeKey,values);
+		};
+		var clear = function(){values = {};save();}
+		return {set:set,get:get,clear:clear};
+	}
+	
+	// 图片旋转
+	var imageRotateAuto = function(){
+		_.each(gallery.itemHolders,function(holder){
+			if(!holder || !holder.item) return;
+			var radius = imageRotateList.get(holder.item.src,0);
+			imageRotateItem(holder.item,radius);
+		});
+		imageHolderShow();
+	}
+	
+	// 显示占位图处理优化;
+	var imageHolderShow = function(){
+		var current = gallery.currItem;
+		var $dom = $(current.container);
+		var $loading = $dom.find('.pswp__img--placeholder');
+		$('.pswp__item').removeClass('current').removeClass('loading');
+		$dom.parents('.pswp__item').addClass('current').addClass('loading');
+		if(!$loading.length){
+			$loading = $("<img class='pswp__img pswp__img--placeholder add' src='"+current.msrc+"'>").prependTo($dom);
+		}
+		if(current.loaded){
+			$dom.parents('.pswp__item').removeClass('loading');
+		}
+		if($dom && $dom.attr('style')){
+			var style = $dom.attr('style').replace(/scale\((\d+)\)/,'scale(1)');
+			$dom.attr('style',style);
+		}
+		photoSwipeView.updateSize(true);
+	}
+	
+	var imageRotateList = new optionsList('imageRotate',500);
+	var bindRotate = function(){
+		gallery.listen('afterChange',imageRotateAuto);
+		if($('.pswp__button--rotate').length) return;
+		var html = '<button class="pswp__button pswp__button--rotate"></button>';
+		var $rotate = $(html).insertAfter('.pswp__button--close');
+		$rotate.bind('click', function(e){
+			var radius = parseInt(imageRotateItem(gallery.currItem,'get')) + 90;
+			imageRotateItem(gallery.currItem,radius,true);
+			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
+		});
+	};
+	var bindRemove = function(){
+		gallery.listen('afterChange',imageRotateAuto);
+		if($('.pswp__button--remove').length) return;
+		var html = '<button class="pswp__button pswp__button--remove"></button>';
+		var $rotate = $(html).insertAfter('.pswp__button--close');
+		$rotate.bind('click', function(e){
+			gallery.removeImage && gallery.removeImage();
+			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
+		});
+
+		// 快捷键删除;
+		$('.pswp').bind('keyup',function(e){
+			if(!$('.pswp').hasClass('pswp--open')) return;
+			if(e.key == 'Delete'){
+				$('.pswp .pswp__button--remove').trigger('click');
+			}
+		});
+	};
+	
+	var imageRotateItem = function(currItem,radius,isSave){
+		if(!currItem || !currItem.container) return;
+		var $image = $(currItem.container).find('.pswp__img');
+		var style  = $image.last().attr('style') || '';
+		var match  = style.match(/transform:\s*rotate\((\d+)deg\)/);
+		if(radius == 'get'){return match ? match[1]:0;}
+
+		var transform = radius ? 'rotate('+radius+'deg)' : '';
+		if(isSave){
+			$image.css('transition','all 0.3s');
+			setTimeout(function(){$image.css('transition','');},310);
+			radius = radius % 360;
+			if(radius == 0){radius = null;}
+			imageRotateList.set(currItem.src,radius);
+		}
+
+		if(gallery.items.length == 1){//一张图片情况下;
+			$image = $(gallery.container).find('.pswp__img');
+		}
+		$image.css('transform',transform);
+	};
+	
 
 	//http://dimsemenov.com/plugins/royal-slider/gallery/
 	//http://photoswipe.com/documentation/faq.html
@@ -142,8 +320,10 @@ define(function(require, exports) {
 			appStatic+'PhotoSwipe/photoswipe.css',
 			appStatic+'PhotoSwipe/default-skin/default-skin.css',
 		],function(photoSwipeTpl){
-			bindClose();
 			initView(path,ext,name,photoSwipeTpl);
+			bindClose();
+			bindRotate();
+			bindRemove();
 		});
 	};
 });
