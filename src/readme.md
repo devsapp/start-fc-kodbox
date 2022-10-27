@@ -70,9 +70,14 @@
 
 ![图片alt](https://img.alicdn.com/imgextra/i1/O1CN01FbMHNY1PvcSGTBzmB_!!6000000001903-2-tps-2520-920.png)
 
-此时，打开案例地址， 使用 admin/admin 登录:
+此时，打开 domain url 地址，按照安装指引完整安装（数据库配置选择 PDO），就得到一个 web 版 windows 用户体验的文件管理系统。
+ 
+![](https://img.alicdn.com/imgextra/i2/O1CN01KkJoBE1PbT2w3zmxb_!!6000000001859-2-tps-1034-832.png)
 
-![](https://img.alicdn.com/imgextra/i3/O1CN01WRjMv428OKNAu7gjq_!!6000000007922-2-tps-1733-1007.png)
+之后登录:
+> 其中 /mnt/auto 表示 NAS 盘
+
+![](https://img.alicdn.com/imgextra/i2/O1CN01eMs5gI1HjEs2gpQ8a_!!6000000000793-0-tps-1860-305.jpg)
 
 添加 OSS Bucket 管理：
 ![](https://img.alicdn.com/imgextra/i2/O1CN01e6dygX1znDLioRfQe_!!6000000006758-2-tps-1210-756.png)

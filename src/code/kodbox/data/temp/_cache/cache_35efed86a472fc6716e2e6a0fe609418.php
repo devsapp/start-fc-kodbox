@@ -1,1 +1,0 @@
-<?php exit;?>a:4:{s:5:"delay";s:2:"10";s:6:"status";s:1:"1";s:7:"running";s:1:"1";s:7:"lastRun";s:10:"1652170904";}

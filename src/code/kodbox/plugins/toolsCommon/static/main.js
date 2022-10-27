@@ -1,2 +1,0 @@
-kodReady.push(function(){
-});
