@@ -29,25 +29,34 @@ vars:
     nasConfig: auto
 
 services:
+  fc-nas-init:
+    component: fc
+    props:
+      region: ${vars.region} # 关于变量的使用方法，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#变量赋值
+      service: ${vars.service}
+      function:
+        name: "nas-init"
+        description: 'Prepare nas'
+        codeUri: './code/init'
+        runtime: python3.9
+        timeout: 1200
+        memorySize: 3072
+        instanceConcurrency: 1
+        handler: index.handler
+
   fc-nas-filemgr: # 业务名称/模块名称
     component:  fc    # 组件名称，Serverless Devs 工具本身类似于一种游戏机，不具备具体的业务能力，组件类似于游戏卡，用户通过向游戏机中插入不同的游戏卡实现不同的功能，即通过使用不同的组件实现不同的具体业务能力
-    actions:          # 自定义执行逻辑，关于actions 的使用，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#行为描述
-      post-deploy:  # 在deploy之前运行
-        - component: fc nas upload -ro code/kodbox/ /mnt/auto/.fc-nas-filemgr  # 要运行的组件，格式为【component: 组件名 命令 参数】（可以通过s cli registry search --type Component 获取组件列表）
-#        - run: s version publish -a demo
-#          path: ./src
-#        - run: docker build xxx            # 要执行的系统命令，类似于一种钩子的形式
-#          path: ./src                      # 执行系统命令/钩子的路径
-#        - plugin: myplugin                 # 与运行的插件 （可以通过s cli registry search --type Plugin 获取组件列表）
-#          args:                            # 插件的参数信息
-#            testKey: testValue
+    actions: # 自定义执行逻辑，关于actions 的使用，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#行为描述
+      post-deploy: # 在deploy之前运行
+        - component: fc api UpdateService --path '{"serviceName":"${vars.service.name}"}' --body '{"nasConfig":{"groupId":0, "userId":0}}'
+        - component: fc invoke --service-name ${fc-nas-init.output.service.name} --function-name nas-init
     props: # 组件的属性值
       region: ${vars.region}
       service: ${vars.service}
       function:
         name: "{{ functionName }}"
         description: 'kodbox  Function'
-        codeUri: './code'
+        codeUri: './code/kodbox'
         runtime: custom
         timeout: 7200
         memorySize: 3072
@@ -77,7 +86,7 @@ services:
           routeConfigs:
             - path: /*
 
-  helper: # 辅助函数, 2 min 定时预热
+  keep-warm: # 辅助函数, 2 min 定时预热
     component: fc  # 组件名称
     actions:
       post-deploy: 
@@ -88,7 +97,7 @@ services:
       function:
         name: keep-warm
         description: 'Serverless Devs Web Framework Helper Function'
-        codeUri: './helper'
+        codeUri: './code/keep-warm'
         handler: index.handler
         runtime: python3
         timeout: 120
@@ -102,20 +111,5 @@ services:
           # qualifier: LATEST    
           config:    
             payload: '{}'    
-            cronExpression: '@every 60m'    
-            enable: true
-
-#  next-function: # 第二个函数的案例，仅供参考
-#    # 如果在当前项目下执行 s deploy，会同时部署模块：
-#    #   helloworld：服务hello-world-service，函数cpp-event-function
-#    #   next-function：服务hello-world-service，函数next-function-example
-#    # 如果想单独部署当前服务与函数，可以执行 s + 模块名/业务名 + deploy，例如：s next-function deploy
-#    # 如果想单独部署当前函数，可以执行 s + 模块名/业务名 + deploy function，例如：s next-function deploy function
-#    # 更多命令可参考：https://www.serverless-devs.com/fc/readme#文档相关
-#    component: fc
-#    props:
-#      region: ${vars.region}
-#      service: ${vars.service} # 应用整体的服务配置
-#      function: # 定义一个新的函数
-#        name: next-function-example
-#        description: 'hello world by serverless devs'
+            cronExpression: '@every 2m'
+            enable: false
