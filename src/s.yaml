@@ -40,7 +40,7 @@ services:
         codeUri: './code/init'
         runtime: python3.9
         timeout: 1200
-        memorySize: 4096
+        memorySize: 3072
         cpu: 2.0
         diskSize: 512
         instanceConcurrency: 1
@@ -60,7 +60,7 @@ services:
         codeUri: './code/kodbox'
         runtime: custom
         timeout: 7200
-        memorySize: 4096
+        memorySize: 3072
         cpu: 2.0
         diskSize: 512
         instanceConcurrency: 16
