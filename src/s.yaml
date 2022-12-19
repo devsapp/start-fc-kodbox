@@ -42,6 +42,7 @@ services:
         timeout: 1200
         memorySize: 4096
         cpu: 2.0
+        diskSize: 512
         instanceConcurrency: 1
         handler: index.handler
 
@@ -61,6 +62,7 @@ services:
         timeout: 7200
         memorySize: 4096
         cpu: 2.0
+        diskSize: 512
         instanceConcurrency: 16
         caPort: 80
         customRuntimeConfig:
@@ -104,6 +106,7 @@ services:
         timeout: 120
         memorySize: 128
         cpu: 0.1
+        diskSize: 512
         instanceConcurrency: 1
         environmentVariables:
           KODBOX_URL: ${fc-nas-filemgr.output.url.custom_domain[0].domain}
