@@ -58,7 +58,8 @@ services:
         codeUri: './code/kodbox'
         runtime: custom
         timeout: 7200
-        memorySize: 3072
+        memorySize: 4096
+        cpu: 2.0
         instanceConcurrency: 16
         caPort: 80
         customRuntimeConfig:
