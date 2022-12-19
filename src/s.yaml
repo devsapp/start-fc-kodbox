@@ -40,7 +40,8 @@ services:
         codeUri: './code/init'
         runtime: python3.9
         timeout: 1200
-        memorySize: 3072
+        memorySize: 4096
+        cpu: 2.0
         instanceConcurrency: 1
         handler: index.handler
 
@@ -102,6 +103,7 @@ services:
         runtime: python3
         timeout: 120
         memorySize: 128
+        cpu: 0.1
         instanceConcurrency: 1
         environmentVariables:
           KODBOX_URL: ${fc-nas-filemgr.output.url.custom_domain[0].domain}
